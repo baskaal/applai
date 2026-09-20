@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Demo job application B</title>
+    <style>
+      body {
+        font: 16px/1.5 system-ui, sans-serif;
+        max-width: 640px;
+        margin: 32px auto;
+        color: #0f172a;
+      }
+      label {
+        display: block;
+        margin: 12px 0 4px;
+        font-weight: 650;
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Globex full-time role</h1>
+    <form>
+      <label for="given">Given name</label>
+      <input id="given" name="givenName" autocomplete="given-name" />
+
+      <label for="family">Family name</label>
+      <input id="family" name="familyName" autocomplete="family-name" />
+
+      <label for="mail">Work email</label>
+      <input id="mail" name="workEmail" type="email" />
+
+      <label for="mobile">Mobile number</label>
+      <input id="mobile" name="mobile" type="tel" />
+
+      <label for="li">LinkedIn profile</label>
+      <input id="li" name="linkedin_url" />
+
+      <label for="visa">Do you require visa sponsorship?</label>
+      <select id="visa" name="visa">
+        <option value=""></option>
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+      </select>
+
+      <label for="cv">Upload CV</label>
+      <input id="cv" name="cv" type="file" accept=".pdf" />
+
+      <label for="why">Why do you want to work here?</label>
+      <textarea id="why" name="motivation"></textarea>
+    </form>
+  </body>
+</html>

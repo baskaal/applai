@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Job Apply Helper</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <div>
+          <h1>Job Apply Helper</h1>
+          <p class="subtitle">Scan once, autofill next time</p>
+        </div>
+      </header>
+
+      <nav class="tabs" role="tablist">
+        <button id="tab-apply" class="tab is-active" type="button" role="tab" aria-selected="true">Apply</button>
+        <button id="tab-answers" class="tab" type="button" role="tab" aria-selected="false">Saved answers</button>
+      </nav>
+
+      <section id="view-apply" class="view" role="tabpanel">
+        <p class="lede">Open a job application in this tab, then click Apply. New questions are saved so later sites can be filled automatically.</p>
+        <button id="apply-btn" class="apply-btn" type="button">Apply</button>
+        <p id="status" class="status" aria-live="polite"></p>
+        <form id="prompt-form" class="prompt-form" hidden></form>
+
+        <section class="card">
+          <div class="card-head">
+            <h2>Resume</h2>
+            <span id="resume-pill" class="pill">Not uploaded</span>
+          </div>
+          <p class="muted">Stored locally in this browser and attached to resume/CV file fields on each application.</p>
+          <label class="file-btn">
+            <input id="resume-input" type="file" accept=".pdf,.doc,.docx,.txt,.rtf,application/pdf" />
+            <span>Upload resume</span>
+          </label>
+          <div id="resume-meta" class="resume-meta"></div>
+          <button id="resume-remove" class="link-btn" type="button" hidden>Remove resume</button>
+        </section>
+      </section>
+
+      <section id="view-answers" class="view" role="tabpanel" hidden>
+        <p class="lede">Edit anything you have already answered. Changes apply the next time you click Apply.</p>
+        <div id="answers-empty" class="empty" hidden>No saved answers yet. Click Apply on a job form to start collecting them.</div>
+        <div id="answers-list" class="answers-list"></div>
+      </section>
+    </div>
+    <script src="shared.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>
