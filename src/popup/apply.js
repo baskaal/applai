@@ -3,6 +3,13 @@ import { findStoredAnswer, inferCanonical, isCoverLetterField, isResumeField, qu
 import { composeCoverLetter } from "./openai.js";
 import { fillAssignments, getActiveTab, scanTab } from "./messaging.js";
 import { getStore, saveAnswers } from "./storage.js";
+import {
+  primaryButton,
+  promptIntro,
+  promptItem,
+  promptLabel,
+  requiredMark,
+} from "./classes.js";
 import { inputForField } from "./form.js";
 
 export function partition(fields, answers, resume, coverLetterText) {
@@ -40,18 +47,19 @@ export function renderPrompts(promptForm, fields) {
   }
   promptForm.hidden = false;
   const intro = document.createElement("p");
-  intro.className = "muted";
+  intro.className = promptIntro;
   intro.textContent = "New questions on this form. Save them to reuse later.";
   promptForm.appendChild(intro);
 
   fields.forEach((field) => {
     const wrap = document.createElement("div");
-    wrap.className = "prompt-item";
+    wrap.className = promptItem;
     const label = document.createElement("label");
+    label.className = promptLabel;
     label.textContent = field.label || field.name || "Untitled field";
     if (field.required) {
       const req = document.createElement("span");
-      req.className = "req";
+      req.className = requiredMark;
       req.textContent = " *";
       label.appendChild(req);
     }
@@ -63,7 +71,7 @@ export function renderPrompts(promptForm, fields) {
   });
 
   const save = document.createElement("button");
-  save.className = "apply-btn";
+  save.className = primaryButton;
   save.type = "submit";
   save.textContent = "Save & fill remaining";
   promptForm.appendChild(save);

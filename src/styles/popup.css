@@ -1,0 +1,17 @@
+@import "tailwindcss";
+@import "./theme.css";
+
+@source "../popup.html";
+@source "../popup/**/*.js";
+
+@layer base {
+  html,
+  body {
+    width: 380px;
+    min-height: 460px;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+}

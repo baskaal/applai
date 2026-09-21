@@ -3,6 +3,7 @@ import { isCoverLetterField } from "../shared/fields.js";
 import { composeCoverLetter } from "./openai.js";
 import { fillAssignments, getActiveTab, scanTab } from "./messaging.js";
 import { fileToStore, formatBytes, getStore, saveAnswers } from "./storage.js";
+import { answerCard, answerRow, answerTitle, deleteButton, linkButton } from "./classes.js";
 import { inputForField } from "./form.js";
 
 export function bindInput({
@@ -51,18 +52,19 @@ export function bindInput({
 
     for (const answer of entries) {
       const card = document.createElement("article");
-      card.className = "answer-card";
+      card.className = answerCard;
       const title = document.createElement("h3");
+      title.className = answerTitle;
       title.textContent = answer.label || answer.key;
       const input = inputForField({ fieldType: answer.fieldType || "text" }, answer.value);
       const row = document.createElement("div");
-      row.className = "row";
+      row.className = answerRow;
       const save = document.createElement("button");
-      save.className = "save-btn";
+      save.className = linkButton;
       save.type = "button";
       save.textContent = "Save";
       const del = document.createElement("button");
-      del.className = "delete-btn";
+      del.className = deleteButton;
       del.type = "button";
       del.textContent = "Delete";
 

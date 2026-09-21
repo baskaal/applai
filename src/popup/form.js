@@ -1,11 +1,15 @@
+import { fieldControl, fieldTextarea } from "./classes.js";
+
 export function inputForField(field, value = "") {
   if (field.fieldType === "textarea" || field.fieldType === "cover_letter") {
     const el = document.createElement("textarea");
+    el.className = fieldTextarea;
     el.value = value;
     return el;
   }
   if (field.fieldType === "select" || field.fieldType === "radio") {
     const el = document.createElement("select");
+    el.className = fieldControl;
     const blank = document.createElement("option");
     blank.value = "";
     blank.textContent = "Choose…";
@@ -21,6 +25,7 @@ export function inputForField(field, value = "") {
   }
   if (field.fieldType === "checkbox") {
     const el = document.createElement("select");
+    el.className = fieldControl;
     [
       ["", "Choose…"],
       ["yes", "Yes"],
@@ -35,6 +40,7 @@ export function inputForField(field, value = "") {
     return el;
   }
   const el = document.createElement("input");
+  el.className = fieldControl;
   el.type = ["email", "tel", "url", "date", "number"].includes(field.fieldType) ? field.fieldType : "text";
   el.value = value;
   return el;

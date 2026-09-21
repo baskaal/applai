@@ -1,0 +1,12 @@
+@theme {
+  --color-canvas: #f4f7f7;
+  --color-ink: #0f172a;
+  --color-muted: #5b677a;
+  --color-line: #d9e2e2;
+  --color-accent: #0f766e;
+  --color-accent-soft: #e7f4f2;
+  --color-accent-pill: #d9f2ef;
+  --color-open: #e7eeee;
+  --color-danger: #b42318;
+  --font-sans: system-ui, sans-serif;
+}

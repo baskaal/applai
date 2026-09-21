@@ -1,4 +1,5 @@
 import { bindApply } from "./apply.js";
+import { menuButton, menuButtonOpen, menuItem, menuItemActive } from "./classes.js";
 import { bindInput } from "./input.js";
 import { ensureContentScript } from "./messaging.js";
 import { bindSettings } from "./settings.js";
@@ -83,7 +84,7 @@ const { renderSettings } = bindSettings({
 
 function setMenuOpen(open) {
   appMenu.hidden = !open;
-  menuBtn.classList.toggle("is-open", open);
+  menuBtn.className = open ? `${menuButton} ${menuButtonOpen}` : menuButton;
   menuBtn.setAttribute("aria-expanded", String(open));
   menuBtn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
 }
@@ -92,7 +93,7 @@ function showView(name) {
   Object.entries(views).forEach(([key, { tab, view }]) => {
     const active = key === name;
     view.hidden = !active;
-    tab.classList.toggle("is-active", active);
+    tab.className = active ? `${menuItem} ${menuItemActive}` : menuItem;
   });
   currentViewEl.textContent = viewLabels[name] || name;
   setMenuOpen(false);

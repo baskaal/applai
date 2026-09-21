@@ -6,94 +6,179 @@
     <title>Job Apply Helper</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
-  <body>
-    <div class="app">
-      <header class="menu-bar">
-        <p id="current-view" class="current-view">Apply</p>
-        <button id="menu-btn" class="hamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="app-menu">
-          <span></span>
-          <span></span>
-          <span></span>
+  <body class="m-0 bg-canvas font-sans text-[13px]/[1.45] text-ink">
+    <div class="px-4 pt-3 pb-4">
+      <header class="relative mb-3 flex items-center justify-between gap-2">
+        <p id="current-view" class="m-0 text-[15px] font-bold tracking-[-0.02em]">Apply</p>
+        <button
+          id="menu-btn"
+          class="flex h-9 w-9 cursor-pointer flex-col justify-center gap-1 rounded-[10px] border border-line bg-white p-2"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+          aria-controls="app-menu"
+        >
+          <span class="block h-0.5 w-full rounded-full bg-ink"></span>
+          <span class="block h-0.5 w-full rounded-full bg-ink"></span>
+          <span class="block h-0.5 w-full rounded-full bg-ink"></span>
         </button>
-        <nav id="app-menu" class="menu" hidden>
-          <button id="tab-apply" class="menu-item is-active" type="button" data-view="apply">Apply</button>
-          <button id="tab-input" class="menu-item" type="button" data-view="input">Input</button>
-          <button id="tab-settings" class="menu-item" type="button" data-view="settings">Settings</button>
+        <nav
+          id="app-menu"
+          class="absolute top-[calc(100%+4px)] right-0 z-20 grid min-w-[180px] rounded-xl border border-line bg-white p-1.5 shadow-[0_10px_28px_rgba(15,23,42,0.12)]"
+          hidden
+        >
+          <button
+            id="tab-apply"
+            class="cursor-pointer rounded-lg border-0 bg-accent-soft px-2.5 py-[9px] text-left font-semibold text-accent hover:bg-accent-soft hover:text-accent"
+            type="button"
+            data-view="apply"
+          >
+            Apply
+          </button>
+          <button
+            id="tab-input"
+            class="cursor-pointer rounded-lg border-0 bg-transparent px-2.5 py-[9px] text-left font-semibold text-ink hover:bg-accent-soft hover:text-accent"
+            type="button"
+            data-view="input"
+          >
+            Input
+          </button>
+          <button
+            id="tab-settings"
+            class="cursor-pointer rounded-lg border-0 bg-transparent px-2.5 py-[9px] text-left font-semibold text-ink hover:bg-accent-soft hover:text-accent"
+            type="button"
+            data-view="settings"
+          >
+            Settings
+          </button>
         </nav>
       </header>
 
-      <section id="view-apply" class="view" role="tabpanel">
-        <p class="lede">Open a job application in this tab, then click Apply. New questions are saved so later sites can be filled automatically.</p>
-        <button id="apply-btn" class="apply-btn" type="button">Apply</button>
-        <p id="status" class="status" aria-live="polite"></p>
-        <form id="prompt-form" class="prompt-form" hidden></form>
+      <section id="view-apply" role="tabpanel">
+        <p class="mb-3 text-muted">
+          Open a job application in this tab, then click Apply. New questions are saved so later sites can be filled automatically.
+        </p>
+        <button
+          id="apply-btn"
+          class="w-full cursor-pointer rounded-xl border-0 bg-accent px-3.5 py-3 text-[15px] font-bold text-white disabled:cursor-default disabled:opacity-55"
+          type="button"
+        >
+          Apply
+        </button>
+        <p id="status" class="mt-2.5 mb-3 min-h-[18px] text-muted" aria-live="polite"></p>
+        <form id="prompt-form" class="mb-3.5 grid gap-2.5" hidden></form>
       </section>
 
-      <section id="view-input" class="view" role="tabpanel" hidden>
-        <section class="card resume-card">
-          <div class="card-head">
-            <h2>Resume</h2>
-            <span id="resume-pill" class="pill">Not uploaded</span>
+      <section id="view-input" role="tabpanel" hidden>
+        <section class="mb-[18px] rounded-xl border border-line bg-white p-3">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="m-0 text-[13px] font-semibold">Resume</h2>
+            <span id="resume-pill" class="rounded-full bg-accent-pill px-2 py-[3px] text-[11px] font-bold text-accent">Not uploaded</span>
           </div>
-          <p class="muted">Stored locally in this browser and attached to resume/CV file fields on each application.</p>
-          <label class="file-btn">
-            <input id="resume-input" type="file" accept=".pdf,.doc,.docx,.txt,.rtf,application/pdf" />
+          <p class="text-muted">Stored locally in this browser and attached to resume/CV file fields on each application.</p>
+          <label class="mt-2.5 inline-flex cursor-pointer rounded-lg bg-accent-soft px-2.5 py-2 font-semibold text-accent">
+            <input id="resume-input" class="hidden" type="file" accept=".pdf,.doc,.docx,.txt,.rtf,application/pdf" />
             <span>Upload resume</span>
           </label>
-          <div id="resume-meta" class="resume-meta"></div>
-          <button id="resume-remove" class="link-btn" type="button" hidden>Remove resume</button>
+          <div id="resume-meta" class="mt-2 text-xs"></div>
+          <button id="resume-remove" class="cursor-pointer border-0 bg-transparent p-0 font-semibold text-accent" type="button" hidden>
+            Remove resume
+          </button>
         </section>
 
-        <section class="cover-block">
-          <p class="lede">Write your cover letter here. Put <code>{{personalize}}</code> where OpenAI should insert a short paragraph about this specific job.</p>
-          <label class="field-label" for="cover-letter">Cover letter</label>
-          <textarea id="cover-letter" rows="12" placeholder="Dear Hiring Manager,
+        <section class="mb-[18px]">
+          <p class="mb-3 text-muted">
+            Write your cover letter here. Put
+            <code class="rounded bg-open px-1 py-px text-xs">{{personalize}}</code>
+            where OpenAI should insert a short paragraph about this specific job.
+          </p>
+          <label class="mb-1.5 block font-semibold" for="cover-letter">Cover letter</label>
+          <textarea
+            id="cover-letter"
+            class="min-h-[180px] w-full resize-y rounded-lg border border-line bg-white p-2 font-[inherit]"
+            rows="12"
+            placeholder="Dear Hiring Manager,
 
 I am excited to apply for this role.
 
 {{personalize}}
 
-Thank you for your time."></textarea>
-          <div class="row-actions">
-            <button id="insert-personalize" class="link-btn" type="button">Insert {{personalize}}</button>
-            <button id="test-cover" class="test-btn" type="button">Test</button>
+Thank you for your time."
+          ></textarea>
+          <div class="my-2 flex items-center justify-between gap-2">
+            <button id="insert-personalize" class="cursor-pointer border-0 bg-transparent p-0 font-semibold text-accent" type="button">
+              Insert {{personalize}}
+            </button>
+            <button
+              id="test-cover"
+              class="cursor-pointer rounded-lg border border-line bg-white px-3 py-1.5 font-bold text-ink disabled:cursor-default disabled:opacity-55"
+              type="button"
+            >
+              Test
+            </button>
           </div>
-          <p id="cover-status" class="status" aria-live="polite"></p>
-          <p id="cover-save-state" class="muted"></p>
+          <p id="cover-status" class="mt-2.5 mb-3 min-h-[18px] text-muted" aria-live="polite"></p>
+          <p id="cover-save-state" class="text-muted"></p>
         </section>
 
-        <h2 class="section-title">Saved questions</h2>
-        <p class="lede">Edit anything you have already answered. Changes apply the next time you click Apply.</p>
-        <div id="answers-empty" class="empty" hidden>No saved answers yet. Click Apply on a job form to start collecting them.</div>
-        <div id="answers-list" class="answers-list"></div>
+        <h2 class="mt-1 mb-2 text-[13px] font-semibold">Saved questions</h2>
+        <p class="mb-3 text-muted">Edit anything you have already answered. Changes apply the next time you click Apply.</p>
+        <div id="answers-empty" class="px-2 py-[18px] text-center text-muted" hidden>
+          No saved answers yet. Click Apply on a job form to start collecting them.
+        </div>
+        <div id="answers-list" class="grid gap-2.5"></div>
       </section>
 
-      <section id="view-settings" class="view" role="tabpanel" hidden>
-        <p class="lede">Keys are saved only in this browser and used to personalize cover letters.</p>
-        <section class="card">
-          <div class="card-head">
-            <h2>OpenAI API key</h2>
-            <span id="openai-pill" class="pill">Not saved</span>
+      <section id="view-settings" role="tabpanel" hidden>
+        <p class="mb-3 text-muted">Keys are saved only in this browser and used to personalize cover letters.</p>
+        <section class="rounded-xl border border-line bg-white p-3">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="m-0 text-[13px] font-semibold">OpenAI API key</h2>
+            <span id="openai-pill" class="rounded-full bg-accent-pill px-2 py-[3px] text-[11px] font-bold text-accent">Not saved</span>
           </div>
-          <label class="field-label" for="openai-key">API key</label>
-          <input id="openai-key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-..." />
-          <div class="settings-actions">
-            <button id="save-openai-key" class="apply-btn" type="button">Save key</button>
-            <button id="clear-openai-key" class="link-btn" type="button">Remove key</button>
+          <label class="mb-1.5 block font-semibold" for="openai-key">API key</label>
+          <input
+            id="openai-key"
+            class="w-full rounded-lg border border-line bg-white p-2 font-[inherit]"
+            type="password"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="sk-..."
+          />
+          <div class="mt-2.5 grid gap-2.5">
+            <button
+              id="save-openai-key"
+              class="w-full cursor-pointer rounded-xl border-0 bg-accent px-3.5 py-3 text-[15px] font-bold text-white disabled:cursor-default disabled:opacity-55"
+              type="button"
+            >
+              Save key
+            </button>
+            <button id="clear-openai-key" class="cursor-pointer border-0 bg-transparent p-0 font-semibold text-accent" type="button">
+              Remove key
+            </button>
           </div>
-          <p id="settings-status" class="status" aria-live="polite"></p>
+          <p id="settings-status" class="mt-2.5 mb-3 min-h-[18px] text-muted" aria-live="polite"></p>
         </section>
 
-        <section class="card context-card">
-          <h2>AI context</h2>
-          <p class="muted">Extra instructions for the <code>{{personalize}}</code> paragraph. Saved automatically.</p>
-          <label class="field-label" for="ai-context">Context</label>
-          <textarea id="ai-context" rows="7" placeholder="Write 2–3 short sentences. Be direct.
+        <section class="mt-3 rounded-xl border border-line bg-white p-3">
+          <h2 class="m-0 mb-1.5 text-[13px] font-semibold">AI context</h2>
+          <p class="text-muted">
+            Extra instructions for the <code class="rounded bg-open px-1 py-px text-xs">{{personalize}}</code> paragraph. Saved automatically.
+          </p>
+          <label class="mb-1.5 block font-semibold" for="ai-context">Context</label>
+          <textarea
+            id="ai-context"
+            class="min-h-[110px] w-full resize-y rounded-lg border border-line bg-white p-2 font-[inherit]"
+            rows="7"
+            placeholder="Write 2–3 short sentences. Be direct.
 Name one specific thing from the job (a product, problem, or skill) and say why it fits me.
-No generic praise, no buzzwords, no “I am passionate.” Plain language."></textarea>
-          <div class="row-actions">
-            <button id="use-ai-example" class="link-btn" type="button">Use example</button>
-            <span id="ai-context-save-state" class="muted"></span>
+No generic praise, no buzzwords, no “I am passionate.” Plain language."
+          ></textarea>
+          <div class="my-2 flex items-center justify-between gap-2">
+            <button id="use-ai-example" class="cursor-pointer border-0 bg-transparent p-0 font-semibold text-accent" type="button">
+              Use example
+            </button>
+            <span id="ai-context-save-state" class="text-muted"></span>
           </div>
         </section>
       </section>
