@@ -1,8 +1,22 @@
-export const PERSONALIZE = "{{personalize}}";
+export const PERSONALIZE_OPEN = "{{";
+export const PERSONALIZE_CLOSE = "}}";
+export const PERSONALIZE_RE = /\{\{([\s\S]*?)\}\}/g;
 export const SCRIPT_VERSION = 5;
-export const EXAMPLE_AI_CONTEXT = `Write 2–3 short sentences. Be direct.
-Name one specific thing from the job (a product, problem, or skill) and say why it fits me.
-No generic praise, no buzzwords, no “I am passionate.” Plain language.`;
+export const EXAMPLE_AI_CONTEXT = `Skills and experience I want mentioned when they match the job.
+Write in plain language. Be direct.
+No generic praise, no buzzwords, no “I am passionate.”`;
+
+export function findPersonalizeBlocks(letter) {
+  return [...(letter || "").matchAll(new RegExp(PERSONALIZE_RE.source, "g"))].map((match) => ({
+    raw: match[0],
+    draft: match[1],
+  }));
+}
+
+export function replacePersonalizeBlocks(letter, rewritten) {
+  let index = 0;
+  return letter.replace(new RegExp(PERSONALIZE_RE.source, "g"), () => rewritten[index++] ?? "");
+}
 
 export const SKIP_TYPES = new Set([
   "hidden",

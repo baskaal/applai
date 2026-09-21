@@ -1,4 +1,4 @@
-import { PERSONALIZE } from "../shared/constants.js";
+import { PERSONALIZE_CLOSE, PERSONALIZE_OPEN } from "../shared/constants.js";
 import { isCoverLetterField } from "../shared/fields.js";
 import { composeCoverLetter } from "./openai.js";
 import { fillAssignments, getActiveTab, scanTab } from "./messaging.js";
@@ -105,10 +105,16 @@ export function bindInput({
   insertPersonalize.addEventListener("click", () => {
     const start = coverLetterEl.selectionStart ?? coverLetterEl.value.length;
     const end = coverLetterEl.selectionEnd ?? start;
-    coverLetterEl.value = `${coverLetterEl.value.slice(0, start)}${PERSONALIZE}${coverLetterEl.value.slice(end)}`;
+    const selected = coverLetterEl.value.slice(start, end);
+    coverLetterEl.value = `${coverLetterEl.value.slice(0, start)}${PERSONALIZE_OPEN}${selected}${PERSONALIZE_CLOSE}${coverLetterEl.value.slice(end)}`;
     coverLetterEl.focus();
-    const cursor = start + PERSONALIZE.length;
-    coverLetterEl.setSelectionRange(cursor, cursor);
+    if (selected) {
+      const cursor = start + PERSONALIZE_OPEN.length + selected.length + PERSONALIZE_CLOSE.length;
+      coverLetterEl.setSelectionRange(cursor, cursor);
+    } else {
+      const cursor = start + PERSONALIZE_OPEN.length;
+      coverLetterEl.setSelectionRange(cursor, cursor);
+    }
     coverLetterEl.dispatchEvent(new Event("input"));
   });
 

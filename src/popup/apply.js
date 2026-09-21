@@ -1,4 +1,4 @@
-import { PERSONALIZE } from "../shared/constants.js";
+import { findPersonalizeBlocks } from "../shared/constants.js";
 import { findStoredAnswer, inferCanonical, isCoverLetterField, isResumeField, questionKey } from "../shared/fields.js";
 import { composeCoverLetter } from "./openai.js";
 import { fillAssignments, getActiveTab, scanTab } from "./messaging.js";
@@ -111,7 +111,7 @@ export function bindApply({ applyBtn, statusEl, promptForm, ensureContentScript,
       const { answers, resume, coverLetter } = await getStore();
       let coverLetterText = (coverLetter || "").trim();
       let personalized = false;
-      if (coverLetterText.includes(PERSONALIZE)) {
+      if (findPersonalizeBlocks(coverLetterText).length) {
         applyBtn.textContent = "Personalizing…";
         const composed = await composeCoverLetter(jobDescription);
         coverLetterText = composed.text;
@@ -132,7 +132,7 @@ export function bindApply({ applyBtn, statusEl, promptForm, ensureContentScript,
       const bits = [`Found ${fields.length} fields.`, `Autofilled ${filled}.`];
       if (resumeTargets) bits.push(`Attached resume to ${resumeTargets} file field${resumeTargets === 1 ? "" : "s"}.`);
       else if (fields.some((f) => f.fieldType === "file") && !resume) bits.push("Upload a resume in this popup to attach it.");
-      if (coverLetterTargets && personalized) bits.push("Filled the cover letter with a personalized paragraph.");
+      if (coverLetterTargets && personalized) bits.push("Filled the cover letter with personalized text.");
       else if (coverLetterTargets) bits.push("Filled the cover letter.");
       else if (coverLetterText && !fields.some(isCoverLetterField)) bits.push("No cover letter field was found on this form.");
       if (unknown.length) bits.push(`${unknown.length} new question${unknown.length === 1 ? "" : "s"} need your input.`);
