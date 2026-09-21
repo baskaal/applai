@@ -1,4 +1,8 @@
 const shared = globalThis.JobApplyShared;
+const PERSONALIZE = "{{personalize}}";
+const EXAMPLE_AI_CONTEXT = `Write 2–3 short sentences. Be direct.
+Name one specific thing from the job (a product, problem, or skill) and say why it fits me.
+No generic praise, no buzzwords, no “I am passionate.” Plain language.`;
 
 const applyBtn = document.getElementById("apply-btn");
 const statusEl = document.getElementById("status");
@@ -10,21 +14,66 @@ const resumeRemove = document.getElementById("resume-remove");
 const answersList = document.getElementById("answers-list");
 const answersEmpty = document.getElementById("answers-empty");
 const tabApply = document.getElementById("tab-apply");
-const tabAnswers = document.getElementById("tab-answers");
+const tabInput = document.getElementById("tab-input");
+const tabSettings = document.getElementById("tab-settings");
 const viewApply = document.getElementById("view-apply");
-const viewAnswers = document.getElementById("view-answers");
+const viewInput = document.getElementById("view-input");
+const viewSettings = document.getElementById("view-settings");
+const coverLetterEl = document.getElementById("cover-letter");
+const coverSaveState = document.getElementById("cover-save-state");
+const insertPersonalize = document.getElementById("insert-personalize");
+const testCoverBtn = document.getElementById("test-cover");
+const coverStatus = document.getElementById("cover-status");
+const openaiKeyEl = document.getElementById("openai-key");
+const openaiPill = document.getElementById("openai-pill");
+const saveOpenaiKey = document.getElementById("save-openai-key");
+const clearOpenaiKey = document.getElementById("clear-openai-key");
+const settingsStatus = document.getElementById("settings-status");
+const aiContextEl = document.getElementById("ai-context");
+const useAiExample = document.getElementById("use-ai-example");
+const aiContextSaveState = document.getElementById("ai-context-save-state");
+
+const menuBtn = document.getElementById("menu-btn");
+const appMenu = document.getElementById("app-menu");
+const currentViewEl = document.getElementById("current-view");
+const viewLabels = {
+  apply: "Apply",
+  input: "Input",
+  settings: "Settings",
+};
+const views = {
+  apply: { tab: tabApply, view: viewApply },
+  input: { tab: tabInput, view: viewInput },
+  settings: { tab: tabSettings, view: viewSettings },
+};
 
 let pendingUnknown = [];
 let activeTabId = null;
+let coverSaveTimer = null;
+let aiContextSaveTimer = null;
 
 function setStatus(text) {
   statusEl.textContent = text || "";
 }
 
 async function getStore() {
-  if (!globalThis.chrome?.storage?.local) return { answers: {}, resume: null };
-  const data = await chrome.storage.local.get({ answers: {}, resume: null });
-  return { answers: data.answers || {}, resume: data.resume || null };
+  if (!globalThis.chrome?.storage?.local) {
+    return { answers: {}, resume: null, coverLetter: "", openaiApiKey: "", aiContext: "" };
+  }
+  const data = await chrome.storage.local.get({
+    answers: {},
+    resume: null,
+    coverLetter: "",
+    openaiApiKey: "",
+    aiContext: "",
+  });
+  return {
+    answers: data.answers || {},
+    resume: data.resume || null,
+    coverLetter: data.coverLetter || "",
+    openaiApiKey: data.openaiApiKey || "",
+    aiContext: data.aiContext || "",
+  };
 }
 
 async function saveAnswers(answers) {
@@ -36,20 +85,20 @@ async function getActiveTab() {
   return tab;
 }
 
+const SCRIPT_VERSION = 4;
+
 async function ensureContentScript(tabId) {
-  try {
-    await chrome.tabs.sendMessage(tabId, { type: "PING" });
-    return;
-  } catch {
-    await chrome.scripting.executeScript({
-      target: { tabId, allFrames: true },
-      files: ["shared.js", "content.js"],
-    });
-    await chrome.scripting.insertCSS({
-      target: { tabId, allFrames: true },
-      files: ["content.css"],
-    });
-  }
+  const replies = await messageFrames(tabId, { type: "PING" });
+  const current = replies.length > 0 && replies.every((item) => item.reply?.version === SCRIPT_VERSION);
+  if (current) return;
+  await chrome.scripting.executeScript({
+    target: { tabId, allFrames: true },
+    files: ["shared.js", "content.js"],
+  });
+  await chrome.scripting.insertCSS({
+    target: { tabId, allFrames: true },
+    files: ["content.css"],
+  });
 }
 
 async function messageFrames(tabId, message) {
@@ -96,6 +145,10 @@ function formatBytes(size) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function isCoverLetterField(field) {
+  return shared.isCoverLetterField(field);
+}
+
 async function renderResume() {
   const { resume } = await getStore();
   if (!resume) {
@@ -107,6 +160,19 @@ async function renderResume() {
   resumePill.textContent = "Ready";
   resumeMeta.textContent = `${resume.name} · ${formatBytes(resume.size || 0)}`;
   resumeRemove.hidden = false;
+}
+
+async function renderSettings() {
+  const { openaiApiKey, aiContext } = await getStore();
+  openaiPill.textContent = openaiApiKey ? "Saved" : "Not saved";
+  openaiKeyEl.value = "";
+  openaiKeyEl.placeholder = openaiApiKey ? "Key saved — paste a new one to replace" : "sk-...";
+  if (aiContextEl.value !== aiContext) aiContextEl.value = aiContext;
+}
+
+async function renderCoverLetter() {
+  const { coverLetter } = await getStore();
+  if (coverLetterEl.value !== coverLetter) coverLetterEl.value = coverLetter;
 }
 
 function inputForField(field, value = "") {
@@ -214,18 +280,27 @@ async function fillAssignments(tabId, assignments, resume) {
 async function scanTab(tabId) {
   const replies = await messageFrames(tabId, { type: "SCAN" });
   const fields = [];
+  let jobDescription = "";
+  let bestScore = -Infinity;
   for (const { frameId, reply } of replies) {
     for (const field of reply.fields || []) {
       fields.push({ ...field, frameId });
     }
+    const desc = reply.jobDescription || "";
+    const score = shared.scoreJobDescription(desc);
+    if (score > bestScore) {
+      bestScore = score;
+      jobDescription = desc;
+    }
   }
-  return fields;
+  return { fields, jobDescription };
 }
 
-function partition(fields, answers, resume) {
+function partition(fields, answers, resume, coverLetterText) {
   const known = [];
   const unknown = [];
   let resumeTargets = 0;
+  let coverLetterTargets = 0;
 
   for (const field of fields) {
     if (field.fieldType === "file") {
@@ -236,11 +311,70 @@ function partition(fields, answers, resume) {
       continue;
     }
     if (field.value) continue;
+    if (coverLetterText && isCoverLetterField(field)) {
+      known.push({ ...field, value: coverLetterText });
+      coverLetterTargets += 1;
+      continue;
+    }
     const hit = shared.findStoredAnswer(field, answers);
-    if (hit) known.push({ ...field, value: hit.answer.value, storageKey: hit.key });
+    if (hit && hit.key !== "cover_letter") known.push({ ...field, value: hit.answer.value, storageKey: hit.key });
     else unknown.push(field);
   }
-  return { known, unknown, resumeTargets };
+  return { known, unknown, resumeTargets, coverLetterTargets };
+}
+
+async function generatePersonalizedParagraph(apiKey, jobDescription, letter, aiContext) {
+  if (!apiKey) {
+    throw new Error("Add your OpenAI API key in Settings first.");
+  }
+  if (!jobDescription || jobDescription.trim().length < 40) {
+    throw new Error("Could not find a job description on this page.");
+  }
+
+  const contextBlock = (aiContext || "").trim()
+    ? `\n\nWRITING INSTRUCTIONS FROM THE APPLICANT:\n${aiContext.trim()}`
+    : "";
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      temperature: 0.7,
+      max_tokens: 280,
+      messages: [
+        {
+          role: "system",
+          content:
+            "Write one short cover-letter paragraph tailored to the job description. Sound like the same person as the rest of the letter. Follow the applicant's writing instructions when they are provided. No greeting, sign-off, title, or quotation marks. Return only the paragraph.",
+        },
+        {
+          role: "user",
+          content: `JOB DESCRIPTION:\n${jobDescription.slice(0, 8000)}\n\nCOVER LETTER DRAFT (the placeholder marks where this paragraph will go):\n${letter.replaceAll(PERSONALIZE, "[personalized paragraph]")}${contextBlock}`,
+        },
+      ],
+    }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error?.message || `OpenAI request failed (${response.status})`);
+  }
+  const paragraph = payload.choices?.[0]?.message?.content?.trim() || "";
+  if (!paragraph) throw new Error("OpenAI returned an empty paragraph.");
+  return paragraph.replace(/^["“]|["”]$/g, "");
+}
+
+async function composeCoverLetter(jobDescription) {
+  const { coverLetter, openaiApiKey, aiContext } = await getStore();
+  const letter = (coverLetter || "").trim();
+  if (!letter) return { text: "", personalized: false };
+  if (!letter.includes(PERSONALIZE)) return { text: letter, personalized: false };
+  const paragraph = await generatePersonalizedParagraph(openaiApiKey, jobDescription, letter, aiContext);
+  return { text: letter.replaceAll(PERSONALIZE, paragraph), personalized: true };
 }
 
 async function apply() {
@@ -258,14 +392,28 @@ async function apply() {
     }
     activeTabId = tab.id;
     await ensureContentScript(tab.id);
-    const fields = await scanTab(tab.id);
+    const { fields, jobDescription } = await scanTab(tab.id);
     if (!fields.length) {
       setStatus("No form fields found on this page. If the form is inside a login wall or unusual widget, open the actual application form first.");
       return;
     }
 
-    const { answers, resume } = await getStore();
-    const { known, unknown, resumeTargets } = partition(fields, answers, resume);
+    const { answers, resume, coverLetter } = await getStore();
+    let coverLetterText = (coverLetter || "").trim();
+    let personalized = false;
+    if (coverLetterText.includes(PERSONALIZE)) {
+      applyBtn.textContent = "Personalizing…";
+      const composed = await composeCoverLetter(jobDescription);
+      coverLetterText = composed.text;
+      personalized = composed.personalized;
+    }
+
+    const { known, unknown, resumeTargets, coverLetterTargets } = partition(
+      fields,
+      answers,
+      resume,
+      coverLetterText
+    );
 
     const assignments = known.map((field) => ({
       uid: field.uid,
@@ -280,6 +428,9 @@ async function apply() {
     const bits = [`Found ${fields.length} fields.`, `Autofilled ${filled}.`];
     if (resumeTargets) bits.push(`Attached resume to ${resumeTargets} file field${resumeTargets === 1 ? "" : "s"}.`);
     else if (fields.some((f) => f.fieldType === "file") && !resume) bits.push("Upload a resume in this popup to attach it.");
+    if (coverLetterTargets && personalized) bits.push("Filled the cover letter with a personalized paragraph.");
+    else if (coverLetterTargets) bits.push("Filled the cover letter.");
+    else if (coverLetterText && !fields.some(isCoverLetterField)) bits.push("No cover letter field was found on this form.");
     if (unknown.length) bits.push(`${unknown.length} new question${unknown.length === 1 ? "" : "s"} need your input.`);
     else bits.push("Everything we recognized was filled from saved answers.");
     setStatus(bits.join(" "));
@@ -304,7 +455,7 @@ promptForm.addEventListener("submit", async (event) => {
     const value = input?.value?.trim() || "";
     if (!value) return;
     const key = shared.inferCanonical(field) || shared.questionKey(field.label);
-    if (key) {
+    if (key && key !== "cover_letter") {
       answers[key] = {
         key,
         label: field.label || field.name || key,
@@ -326,7 +477,9 @@ promptForm.addEventListener("submit", async (event) => {
 
 async function renderAnswers() {
   const { answers } = await getStore();
-  const entries = Object.values(answers).sort((a, b) => (a.label || "").localeCompare(b.label || ""));
+  const entries = Object.values(answers)
+    .filter((answer) => answer.key !== "cover_letter")
+    .sort((a, b) => (a.label || "").localeCompare(b.label || ""));
   answersList.innerHTML = "";
   answersEmpty.hidden = entries.length > 0;
   if (!entries.length) return;
@@ -371,20 +524,133 @@ async function renderAnswers() {
   }
 }
 
-function showView(name) {
-  const apply = name === "apply";
-  viewApply.hidden = !apply;
-  viewAnswers.hidden = apply;
-  tabApply.classList.toggle("is-active", apply);
-  tabAnswers.classList.toggle("is-active", !apply);
-  tabApply.setAttribute("aria-selected", String(apply));
-  tabAnswers.setAttribute("aria-selected", String(!apply));
-  if (!apply) renderAnswers();
+function setMenuOpen(open) {
+  appMenu.hidden = !open;
+  menuBtn.classList.toggle("is-open", open);
+  menuBtn.setAttribute("aria-expanded", String(open));
+  menuBtn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
 }
 
+function showView(name) {
+  Object.entries(views).forEach(([key, { tab, view }]) => {
+    const active = key === name;
+    view.hidden = !active;
+    tab.classList.toggle("is-active", active);
+  });
+  currentViewEl.textContent = viewLabels[name] || name;
+  setMenuOpen(false);
+  if (name === "input") {
+    renderCoverLetter();
+    renderResume();
+    renderAnswers();
+  }
+  if (name === "settings") renderSettings();
+}
+
+coverLetterEl.addEventListener("input", () => {
+  coverSaveState.textContent = "Saving…";
+  clearTimeout(coverSaveTimer);
+  coverSaveTimer = setTimeout(async () => {
+    if (globalThis.chrome?.storage?.local) {
+      await chrome.storage.local.set({ coverLetter: coverLetterEl.value });
+    }
+    coverSaveState.textContent = "Saved";
+  }, 350);
+});
+
+insertPersonalize.addEventListener("click", () => {
+  const start = coverLetterEl.selectionStart ?? coverLetterEl.value.length;
+  const end = coverLetterEl.selectionEnd ?? start;
+  coverLetterEl.value = `${coverLetterEl.value.slice(0, start)}${PERSONALIZE}${coverLetterEl.value.slice(end)}`;
+  coverLetterEl.focus();
+  const cursor = start + PERSONALIZE.length;
+  coverLetterEl.setSelectionRange(cursor, cursor);
+  coverLetterEl.dispatchEvent(new Event("input"));
+});
+
+testCoverBtn.addEventListener("click", async () => {
+  coverStatus.textContent = "";
+  testCoverBtn.disabled = true;
+  testCoverBtn.textContent = "Testing…";
+  try {
+    if (globalThis.chrome?.storage?.local) {
+      await chrome.storage.local.set({ coverLetter: coverLetterEl.value });
+    }
+    const tab = await getActiveTab();
+    if (!tab?.id || !/^https?:/.test(tab.url || "")) {
+      throw new Error("Open a job page in this tab first.");
+    }
+    await ensureContentScript(tab.id);
+    const { fields, jobDescription } = await scanTab(tab.id);
+    const composed = await composeCoverLetter(jobDescription);
+    if (!composed.text) throw new Error("Write a cover letter first.");
+    const targets = fields.filter((field) => isCoverLetterField(field));
+    if (!targets.length) throw new Error("No cover letter field found on this page.");
+    const assignments = targets.map((field) => ({
+      uid: field.uid,
+      frameId: field.frameId,
+      value: composed.text,
+    }));
+    const filled = await fillAssignments(tab.id, assignments, null);
+    coverStatus.textContent = filled
+      ? "Filled the cover letter on this page."
+      : "Found the field but could not fill it.";
+  } catch (err) {
+    coverStatus.textContent = err?.message || "Could not test the cover letter.";
+  } finally {
+    testCoverBtn.disabled = false;
+    testCoverBtn.textContent = "Test";
+  }
+});
+
+saveOpenaiKey.addEventListener("click", async () => {
+  const key = openaiKeyEl.value.trim();
+  if (!key) {
+    settingsStatus.textContent = "Paste an API key first.";
+    return;
+  }
+  await chrome.storage.local.set({ openaiApiKey: key });
+  openaiKeyEl.value = "";
+  settingsStatus.textContent = "API key saved in this browser.";
+  await renderSettings();
+});
+
+clearOpenaiKey.addEventListener("click", async () => {
+  await chrome.storage.local.set({ openaiApiKey: "" });
+  openaiKeyEl.value = "";
+  settingsStatus.textContent = "API key removed.";
+  await renderSettings();
+});
+
+aiContextEl.addEventListener("input", () => {
+  aiContextSaveState.textContent = "Saving…";
+  clearTimeout(aiContextSaveTimer);
+  aiContextSaveTimer = setTimeout(async () => {
+    if (globalThis.chrome?.storage?.local) {
+      await chrome.storage.local.set({ aiContext: aiContextEl.value });
+    }
+    aiContextSaveState.textContent = "Saved";
+  }, 350);
+});
+
+useAiExample.addEventListener("click", () => {
+  aiContextEl.value = EXAMPLE_AI_CONTEXT;
+  aiContextEl.dispatchEvent(new Event("input"));
+});
+
 applyBtn.addEventListener("click", apply);
+menuBtn.addEventListener("click", (event) => {
+  event.stopPropagation();
+  setMenuOpen(appMenu.hidden);
+});
+document.addEventListener("click", (event) => {
+  if (!appMenu.hidden && !appMenu.contains(event.target) && event.target !== menuBtn) {
+    setMenuOpen(false);
+  }
+});
 tabApply.addEventListener("click", () => showView("apply"));
-tabAnswers.addEventListener("click", () => showView("answers"));
+tabInput.addEventListener("click", () => showView("input"));
+tabSettings.addEventListener("click", () => showView("settings"));
 
 resumeInput.addEventListener("change", async () => {
   const file = resumeInput.files?.[0];
@@ -404,3 +670,5 @@ resumeRemove.addEventListener("click", async () => {
 
 renderResume();
 renderAnswers();
+renderCoverLetter();
+renderSettings();

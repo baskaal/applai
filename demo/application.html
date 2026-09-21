@@ -29,6 +29,14 @@
   </head>
   <body>
     <h1>Acme intern role</h1>
+    <section class="job-description">
+      <h2>Job description</h2>
+      <p>
+        Acme is hiring a product intern to ship customer-facing features with a small engineering team.
+        You will talk to users, write lightweight specs, and help launch experiments that improve onboarding.
+        We look for clear writing, curiosity about how products get built, and comfort working across design and engineering.
+      </p>
+    </section>
     <form>
       <label for="first">First name</label>
       <input id="first" name="first_name" autocomplete="given-name" />
@@ -55,7 +63,10 @@
       <label for="resume">Resume</label>
       <input id="resume" name="resume" type="file" accept=".pdf,.doc,.docx" />
 
-      <label for="why">Why do you want to work here?</label>
+      <label for="cover">Cover letter</label>
+      <textarea id="cover" name="cover_letter"></textarea>
+
+      <label for="why">How did you hear about this role?</label>
       <textarea id="why" name="why"></textarea>
 
       <button type="submit">Submit application</button>

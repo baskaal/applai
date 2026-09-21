@@ -8,25 +8,29 @@
   </head>
   <body>
     <div class="app">
-      <header class="header">
-        <div>
-          <h1>Job Apply Helper</h1>
-          <p class="subtitle">Scan once, autofill next time</p>
-        </div>
+      <header class="menu-bar">
+        <p id="current-view" class="current-view">Apply</p>
+        <button id="menu-btn" class="hamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="app-menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <nav id="app-menu" class="menu" hidden>
+          <button id="tab-apply" class="menu-item is-active" type="button" data-view="apply">Apply</button>
+          <button id="tab-input" class="menu-item" type="button" data-view="input">Input</button>
+          <button id="tab-settings" class="menu-item" type="button" data-view="settings">Settings</button>
+        </nav>
       </header>
-
-      <nav class="tabs" role="tablist">
-        <button id="tab-apply" class="tab is-active" type="button" role="tab" aria-selected="true">Apply</button>
-        <button id="tab-answers" class="tab" type="button" role="tab" aria-selected="false">Saved answers</button>
-      </nav>
 
       <section id="view-apply" class="view" role="tabpanel">
         <p class="lede">Open a job application in this tab, then click Apply. New questions are saved so later sites can be filled automatically.</p>
         <button id="apply-btn" class="apply-btn" type="button">Apply</button>
         <p id="status" class="status" aria-live="polite"></p>
         <form id="prompt-form" class="prompt-form" hidden></form>
+      </section>
 
-        <section class="card">
+      <section id="view-input" class="view" role="tabpanel" hidden>
+        <section class="card resume-card">
           <div class="card-head">
             <h2>Resume</h2>
             <span id="resume-pill" class="pill">Not uploaded</span>
@@ -39,12 +43,59 @@
           <div id="resume-meta" class="resume-meta"></div>
           <button id="resume-remove" class="link-btn" type="button" hidden>Remove resume</button>
         </section>
-      </section>
 
-      <section id="view-answers" class="view" role="tabpanel" hidden>
+        <section class="cover-block">
+          <p class="lede">Write your cover letter here. Put <code>{{personalize}}</code> where OpenAI should insert a short paragraph about this specific job.</p>
+          <label class="field-label" for="cover-letter">Cover letter</label>
+          <textarea id="cover-letter" rows="12" placeholder="Dear Hiring Manager,
+
+I am excited to apply for this role.
+
+{{personalize}}
+
+Thank you for your time."></textarea>
+          <div class="row-actions">
+            <button id="insert-personalize" class="link-btn" type="button">Insert {{personalize}}</button>
+            <button id="test-cover" class="test-btn" type="button">Test</button>
+          </div>
+          <p id="cover-status" class="status" aria-live="polite"></p>
+          <p id="cover-save-state" class="muted"></p>
+        </section>
+
+        <h2 class="section-title">Saved questions</h2>
         <p class="lede">Edit anything you have already answered. Changes apply the next time you click Apply.</p>
         <div id="answers-empty" class="empty" hidden>No saved answers yet. Click Apply on a job form to start collecting them.</div>
         <div id="answers-list" class="answers-list"></div>
+      </section>
+
+      <section id="view-settings" class="view" role="tabpanel" hidden>
+        <p class="lede">Keys are saved only in this browser and used to personalize cover letters.</p>
+        <section class="card">
+          <div class="card-head">
+            <h2>OpenAI API key</h2>
+            <span id="openai-pill" class="pill">Not saved</span>
+          </div>
+          <label class="field-label" for="openai-key">API key</label>
+          <input id="openai-key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-..." />
+          <div class="settings-actions">
+            <button id="save-openai-key" class="apply-btn" type="button">Save key</button>
+            <button id="clear-openai-key" class="link-btn" type="button">Remove key</button>
+          </div>
+          <p id="settings-status" class="status" aria-live="polite"></p>
+        </section>
+
+        <section class="card context-card">
+          <h2>AI context</h2>
+          <p class="muted">Extra instructions for the <code>{{personalize}}</code> paragraph. Saved automatically.</p>
+          <label class="field-label" for="ai-context">Context</label>
+          <textarea id="ai-context" rows="7" placeholder="Write 2–3 short sentences. Be direct.
+Name one specific thing from the job (a product, problem, or skill) and say why it fits me.
+No generic praise, no buzzwords, no “I am passionate.” Plain language."></textarea>
+          <div class="row-actions">
+            <button id="use-ai-example" class="link-btn" type="button">Use example</button>
+            <span id="ai-context-save-state" class="muted"></span>
+          </div>
+        </section>
       </section>
     </div>
     <script src="shared.js"></script>
