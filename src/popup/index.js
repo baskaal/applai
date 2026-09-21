@@ -1,3 +1,4 @@
+import "../styles/popup.css";
 import { bindApply } from "./apply.js";
 import { menuButton, menuButtonOpen, menuItem, menuItemActive } from "./classes.js";
 import { bindInput } from "./input.js";

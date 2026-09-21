@@ -1,3 +1,4 @@
+import "../styles/content.css";
 import { SCRIPT_VERSION } from "../shared/constants.js";
 import { fill } from "./fill.js";
 import { scan } from "./scan.js";

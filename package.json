@@ -3,12 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/build.mjs",
-    "watch": "node scripts/build.mjs --watch"
+    "dev": "vite",
+    "build": "vite build"
   },
   "devDependencies": {
-    "@tailwindcss/cli": "^4.1.13",
-    "esbuild": "^0.25.9",
-    "tailwindcss": "^4.1.13"
+    "@crxjs/vite-plugin": "^2.7.1",
+    "@tailwindcss/vite": "^4.1.13",
+    "tailwindcss": "^4.1.13",
+    "vite": "^6.3.5"
   }
 }

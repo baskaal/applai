@@ -25,18 +25,28 @@ export async function messageFrames(tabId, message) {
   return replies;
 }
 
+function contentScriptFiles() {
+  const [declared] = chrome.runtime.getManifest().content_scripts || [];
+  return { js: declared?.js || [], css: declared?.css || [] };
+}
+
 export async function ensureContentScript(tabId) {
   const replies = await messageFrames(tabId, { type: "PING" });
   const current = replies.length > 0 && replies.every((item) => item.reply?.version === SCRIPT_VERSION);
   if (current) return;
-  await chrome.scripting.executeScript({
-    target: { tabId, allFrames: true },
-    files: ["content.js"],
-  });
-  await chrome.scripting.insertCSS({
-    target: { tabId, allFrames: true },
-    files: ["content.css"],
-  });
+  const { js, css } = contentScriptFiles();
+  if (js.length) {
+    await chrome.scripting.executeScript({
+      target: { tabId, allFrames: true },
+      files: js,
+    });
+  }
+  if (css.length) {
+    await chrome.scripting.insertCSS({
+      target: { tabId, allFrames: true },
+      files: css,
+    });
+  }
 }
 
 export async function fillAssignments(tabId, assignments, resume) {
