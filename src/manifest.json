@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Job Apply Helper",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Scan job application forms, save your answers, and autofill them the next time — including your resume.",
   "action": {
     "default_title": "Job Apply Helper",
@@ -27,7 +27,7 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["shared.js", "content.js"],
+      "js": ["content.js"],
       "css": ["content.css"],
       "all_frames": true,
       "run_at": "document_idle"
