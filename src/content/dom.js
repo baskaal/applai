@@ -1,5 +1,8 @@
 export const fieldMap = new Map();
 
+const TAG_TYPES = new Set(["select", "textarea"]);
+const INPUT_TYPES = new Set(["file", "checkbox", "radio", "email", "tel", "url", "date", "number", "month"]);
+
 export function visible(el) {
   if (!(el instanceof HTMLElement)) return false;
   if (el.disabled) return false;
@@ -55,6 +58,12 @@ export function getLabel(el) {
   return (el.placeholder || el.name || el.id || "").trim();
 }
 
+function fieldTypeOf(el, tag, inputType) {
+  if (el.isContentEditable) return "textarea";
+  if (TAG_TYPES.has(tag)) return tag;
+  return INPUT_TYPES.has(inputType) ? inputType : "text";
+}
+
 function labelAbove(el) {
   let node = el;
   for (let depth = 0; depth < 6 && node; depth += 1) {
@@ -82,15 +91,7 @@ export function currentValue(el) {
 export function describeField(el, index) {
   const tag = el.tagName.toLowerCase();
   const inputType = (el.type || tag).toLowerCase();
-  let fieldType = "text";
-  if (el.isContentEditable) fieldType = "textarea";
-  else if (tag === "select") fieldType = "select";
-  else if (tag === "textarea") fieldType = "textarea";
-  else if (inputType === "file") fieldType = "file";
-  else if (inputType === "checkbox") fieldType = "checkbox";
-  else if (inputType === "radio") fieldType = "radio";
-  else if (["email", "tel", "url", "date", "number", "month"].includes(inputType)) fieldType = inputType;
-  else fieldType = "text";
+  const fieldType = fieldTypeOf(el, tag, inputType);
 
   const uid = `${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`;
   fieldMap.set(uid, el);

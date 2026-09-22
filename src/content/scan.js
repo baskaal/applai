@@ -66,7 +66,7 @@ export function scan() {
     if (el.getAttribute("contenteditable") === "true" && el.closest("input, textarea")) return;
     const type = (el.type || "").toLowerCase();
     if (SKIP_TYPES.has(type)) return;
-    if (el.closest("[data-jah-ignore]")) return;
+    if (el.closest("[data-applybot-ignore]")) return;
 
     if (type === "radio") {
       const key = el.name || el.id;

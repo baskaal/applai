@@ -2,12 +2,12 @@ import { defineManifest } from "@crxjs/vite-plugin";
 
 export default defineManifest({
   manifest_version: 3,
-  name: "Job Apply Helper",
+  name: "applybot",
   version: "1.2.0",
   description:
     "Scan job application forms, save your answers, and autofill them the next time — including your resume.",
   action: {
-    default_title: "Job Apply Helper",
+    default_title: "applybot",
     default_popup: "src/popup.html",
     default_icon: {
       16: "icons/icon16.png",

@@ -17,10 +17,10 @@ function handleMessage(message, _sender, sendResponse) {
   }
 }
 
-globalThis.__jahHandle = handleMessage;
-if (!globalThis.__jahListener) {
-  globalThis.__jahListener = true;
+globalThis.__applybotHandle = handleMessage;
+if (!globalThis.__applybotListener) {
+  globalThis.__applybotListener = true;
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    return globalThis.__jahHandle(message, sender, sendResponse);
+    return globalThis.__applybotHandle(message, sender, sendResponse);
   });
 }

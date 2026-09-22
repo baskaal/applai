@@ -1,3 +1,3 @@
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("Job Apply Helper ready");
+  console.log("applybot ready");
 });

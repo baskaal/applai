@@ -107,9 +107,9 @@ function fillOne(el, value, resume) {
 }
 
 function showToast(message) {
-  document.querySelectorAll(".jah-toast").forEach((n) => n.remove());
+  document.querySelectorAll(".applybot-toast").forEach((n) => n.remove());
   const toast = document.createElement("div");
-  toast.className = "jah-toast";
+  toast.className = "applybot-toast";
   toast.textContent = message;
   document.documentElement.appendChild(toast);
   setTimeout(() => toast.remove(), 3200);

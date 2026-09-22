@@ -2,7 +2,7 @@
 @import "tailwindcss/theme.css" layer(theme);
 @import "./theme.css";
 
-.jah-toast {
+.applybot-toast {
   @apply pointer-events-none fixed right-4 bottom-4 z-[2147483647] max-w-[280px] rounded-[10px] bg-accent px-3.5 py-2.5 text-[13px]/snug text-white;
   font-family: system-ui, sans-serif;
   box-shadow: 0 8px 24px rgb(15 23 42 / 0.25);
